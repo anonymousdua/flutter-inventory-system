@@ -76,6 +76,7 @@ class _MainState extends State<Main> {
               ),
               Expanded(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
                         padding: const EdgeInsets.only(left: defaultSpace * 2, top: defaultSpace * 2),
