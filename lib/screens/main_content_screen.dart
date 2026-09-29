@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:inventory_management/data/inventory_data.dart';
 import 'package:inventory_management/data/models/product_model.dart';
 import 'package:inventory_management/utils/constants.dart';
 import 'package:inventory_management/widgets/bottom_widget.dart';
+import 'package:inventory_management/widgets/pagination_widget.dart';
 
 class MainContent extends StatefulWidget {
   const MainContent({super.key});
@@ -12,6 +14,24 @@ class MainContent extends StatefulWidget {
 }
 
 class _MainContentState extends State<MainContent> {
+  Iterable<TableRow>? productList;
+  Iterable<TableRow>? filteredProductList;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      setState(() {
+        productList = productInventoryList.map(
+          (product) => _buildProductRowTile(product),
+        );
+      });
+      // productList = productInventoryList.map(
+      //   (product) => _buildProductRowTile(product),
+      // );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -63,7 +83,49 @@ class _MainContentState extends State<MainContent> {
                               ),
                               Expanded(
                                 child: TextField(
-                                  onChanged: (value) {},
+                                  onChanged: (searchTerm) {
+                                    if (searchTerm.length >= 3) {
+                                      Future.delayed(
+                                        const Duration(seconds: 1),
+                                        () {
+                                          filteredProductList =
+                                              productInventoryList
+                                                  .where(
+                                                    (product) =>
+                                                        product.productName
+                                                            .contains(
+                                                              searchTerm,
+                                                            ) ||
+                                                        product.productPrice
+                                                            .toString()
+                                                            .contains(
+                                                              searchTerm,
+                                                            ) ||
+                                                        product.category.name
+                                                            .contains(
+                                                              searchTerm,
+                                                            ),
+                                                  )
+                                                  .map(
+                                                    (product) =>
+                                                        _buildProductRowTile(
+                                                          product,
+                                                        ),
+                                                  );
+                                          setState(() {
+                                            productList = filteredProductList;
+                                          });
+                                        },
+                                      );
+                                    } else if (searchTerm.isEmpty == true) {
+                                      setState(() {
+                                        productList = productInventoryList.map(
+                                          (product) =>
+                                              _buildProductRowTile(product),
+                                        );
+                                      });
+                                    }
+                                  },
                                   style: TextStyle(fontSize: 12),
                                   decoration: const InputDecoration(
                                     border: InputBorder.none,
@@ -121,8 +183,194 @@ class _MainContentState extends State<MainContent> {
                       ],
                     ),
                   ),
-                  Table(columnWidths: const {}),
+                  Table(
+                    columnWidths: const {
+                      0: FixedColumnWidth(25),
+                      1: FixedColumnWidth(70),
+                      2: FixedColumnWidth(175),
+                      3: FixedColumnWidth(120),
+                      4: FixedColumnWidth(150),
+                      5: FixedColumnWidth(170),
+                    },
+                    border: TableBorder(
+                      top: BorderSide(
+                        color: Colors.grey.withValues(alpha: .1),
+                        width: 1,
+                      ),
+                      bottom: BorderSide(
+                        color: Colors.grey.withValues(alpha: .1),
+                        width: 1,
+                      ),
+                      horizontalInside: BorderSide(
+                        color: Colors.grey.withValues(alpha: .1),
+                        width: 1,
+                      ),
+                    ),
+                    children: [_buildProductHeader(), ...?productList],
+                  ),
                 ],
+              ),
+            ),
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [PaginationWidget()],
+        ),
+        const SizedBox(height: defaultSpace * 3),
+      ],
+    );
+  }
+
+  TableRow _buildProductRowTile(Product product) {
+    return TableRow(
+      key: ValueKey(product.productPrice),
+      children: [
+        _buildProductItem(
+          child: Checkbox(
+            side: const BorderSide(color: Colors.grey, width: 1),
+            focusColor: Colors.black45,
+            value: false,
+            onChanged: (value) {},
+          ),
+        ),
+        _buildProductItem(
+          child: Image.network(
+            product.productPhoto,
+            width: 40,
+            errorBuilder: (context, err, _) {
+              return Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  color: Colors.blueGrey,
+                  shape: BoxShape.rectangle,
+                ),
+              );
+            },
+          ),
+        ),
+        _buildProductItem(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              product.productName,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.black87.withValues(alpha: .7),
+              ),
+            ),
+          ),
+        ),
+        _buildProductItem(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              product.category.name.toUpperCase(),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.black87.withValues(alpha: .7),
+              ),
+            ),
+          ),
+        ),
+        _buildProductItem(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              product.productSku,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.black87.withValues(alpha: .7),
+              ),
+            ),
+          ),
+        ),
+        _buildProductItem(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  product.variantCount.toString(),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.black87.withValues(alpha: .7),
+                  ),
+                ),
+                Row(
+                  children: [
+                    const Text("Varies on: "),
+                    ...product.productVariants.map(
+                      (variant) => Flexible(
+                        child: Text(
+                          '${variant.name}',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Colors.black87.withValues(alpha: .7),
+                              ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        _buildProductItem(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              '\$${product.productPrice.toString()}',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.black87.withValues(alpha: .7),
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ),
+        _buildProductItem(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              height: 35,
+              width: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.rectangle,
+                color: product.status.name == "active"
+                    ? Colors.green.withValues(alpha: .3)
+                    : Colors.red.withValues(alpha: .3),
+                borderRadius: BorderRadius.circular(50),
+              ),
+              child: Center(
+                child: Text(
+                  friendlyStatus(product.status),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    color: product.status.name == "active"
+                        ? Colors.green
+                        : Colors.red,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        TableCell(
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: defaultSpace + 6),
+            child: Center(
+              child: Container(
+                height: 25,
+                width: 25,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  color: backgroundColor,
+                ),
+                child: Icon(
+                  Icons.more_horiz,
+                  size: 17,
+                  color: Colors.black.withValues(alpha: .5),
+                ),
               ),
             ),
           ),
@@ -142,39 +390,39 @@ class _MainContentState extends State<MainContent> {
         ),
         _buildProductItem(child: Container()),
         _buildProductItem(
-          child: Padding(
+          child: const Padding(
             padding: EdgeInsets.all(defaultSpace / 2),
-            child: Checkbox(value: false, onChanged: (value) {}),
+            child: Text("Product Name"),
           ),
         ),
         _buildProductItem(
-          child: Padding(
+          child: const Padding(
             padding: EdgeInsets.all(defaultSpace / 2),
-            child: Checkbox(value: false, onChanged: (value) {}),
+            child: Text("Category"),
           ),
         ),
         _buildProductItem(
-          child: Padding(
+          child: const Padding(
             padding: EdgeInsets.all(defaultSpace / 2),
-            child: Checkbox(value: false, onChanged: (value) {}),
+            child: Text("SKU"),
           ),
         ),
         _buildProductItem(
-          child: Padding(
+          child: const Padding(
             padding: EdgeInsets.all(defaultSpace / 2),
-            child: Checkbox(value: false, onChanged: (value) {}),
+            child: Text("Variant"),
           ),
         ),
         _buildProductItem(
-          child: Padding(
+          child: const Padding(
             padding: EdgeInsets.all(defaultSpace / 2),
-            child: Checkbox(value: false, onChanged: (value) {}),
+            child: Text("Price"),
           ),
         ),
         _buildProductItem(
-          child: Padding(
+          child: const Padding(
             padding: EdgeInsets.all(defaultSpace / 2),
-            child: Checkbox(value: false, onChanged: (value) {}),
+            child: Text("Status"),
           ),
         ),
         _buildProductItem(child: Container()),
