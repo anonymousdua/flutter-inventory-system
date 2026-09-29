@@ -4,12 +4,15 @@ A modern, responsive Inventory Management Dashboard built with Flutter. This pro
 
 ## 🚀 Features
 
-- **Dashboard Layout**: A professional sidebar navigation and header layout designed for desktop and tablet experiences.
-- **Product Management**: Track product details including SKU, category, price, and variants.
-- **Categorization**: Support for multiple product categories such as Clothing, Shoes, Bags, and Jewelry.
-- **Variant Support**: Manage product variations like color, size, and material.
-- **Stock Status**: Real-time status tracking (Active, Out of Stock).
-- **Clean UI**: Built with Material Design and Cupertino icons for a familiar yet modern feel.
+- **Inventory dashboard**: PHIX LAB header, icon-based side navigation, and a Products view.
+- **Product inventory table**: Displays a product image, name, category, SKU, variant count and options, price, and stock status.
+- **Product search**: Filters the sample inventory by product name, category, or price after at least three characters; clearing the search restores the full list.
+- **Stock status labels**: Shows products as Active or Out of Stock.
+- **Sample inventory data**: Includes Clothing, Shoes, Bags, and Jewelry categories, with Color and Size variant options in the sample products.
+- **Image fallback**: Shows a placeholder when a product image cannot be loaded.
+- **Dashboard controls**: Includes search, Filter and Export buttons, a New Product button, pagination, row checkboxes, and row action icons. Filter, Export, New Product, pagination, selection, and row actions are currently visual placeholders and do not perform these operations.
+- **Navigation placeholders**: The other sidebar destinations are displayed, but only the Products view is implemented.
+- **Material and Cupertino icons**: Uses Flutter's Material and Cupertino widget libraries for the interface.
 
 ## 🛠 Tech Stack
 
